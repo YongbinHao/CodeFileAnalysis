@@ -2,15 +2,17 @@ package cn.hyb;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class AnalyseUtil {
 
-    static HashMap<String, String> NOTES_PATTERN = new HashMap<>();
+    static HashMap<String, String> LINE_NOTES_PATTERN = new HashMap<>();
+    static HashMap<String, String> BLOCK_NOTES_PATTERN = new HashMap<>();
 
     static {
-        NOTES_PATTERN.put(".java", "//");
-        NOTES_PATTERN.put(".xml", "<!--");
+        LINE_NOTES_PATTERN.put(".java", "//");
+        LINE_NOTES_PATTERN.put(".xml", "<!--");
+        BLOCK_NOTES_PATTERN.put(".java", "/* */");
+        BLOCK_NOTES_PATTERN.put(".xml", "<!-- -->");
     }
 
     static public Map<Path, HashMap<String, String>> analysis(String workSpace, List<String> targetSuffix) {
@@ -41,11 +43,14 @@ public class AnalyseUtil {
             fileItemRes.put(CommonConstants.TOTAL_LINE_NUM, "" + codeFiles.size());
 
             //扫描每一行文件，获取注释及特定字符信息
+            //TODO 增加块注释支持
+            Integer bolckStart = 0;
+            Integer blockEnd = 0;
             fileItemRes.put(CommonConstants.TOTAL_NOTE_LINE_NUM, "0");
             for (int i = 0; i < codeFiles.size(); i++) {
                 String codeFile = codeFiles.get(i);
-                String note = NOTES_PATTERN.get(suffix);
-                int noteStart = codeFile.indexOf(note);
+                String lineNote = LINE_NOTES_PATTERN.get(suffix);
+                int noteStart = codeFile.indexOf(lineNote);
                 if (-1 != noteStart) {
                     fileItemRes.put(CommonConstants.TOTAL_NOTE_LINE_NUM, "" + (Integer.parseInt(fileItemRes.get(CommonConstants.TOTAL_NOTE_LINE_NUM)) + 1));
                 }
