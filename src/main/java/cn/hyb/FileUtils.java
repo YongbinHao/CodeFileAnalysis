@@ -11,16 +11,21 @@ import java.util.stream.Collectors;
 
 public class FileUtils {
 
-    private String workSpace;
-    private List<String> fileNames;
-    private Iterator<String> iterator = null;
+    private List<Path> fileNames;
+    private Iterator<Path> iterator = null;
 
-
-    FileUtils(String baseWorkSpace) {
+    FileUtils(String baseWorkSpace, List<String> targetSuffix) {
         try {
-            workSpace = baseWorkSpace;
-            fileNames = Files.list(Paths.get(baseWorkSpace))
-                    .map(f -> f.getName(f.getNameCount() - 1).toString())
+            fileNames = Files.walk(Paths.get(baseWorkSpace))
+                    .filter(Files::isRegularFile)
+                    .filter(f -> {
+                        for (String suffix : targetSuffix) {
+                            if (f.toString().endsWith(suffix)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
                     .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
@@ -30,16 +35,13 @@ public class FileUtils {
         }
     }
 
-    public Iterator<String> getFileIterator() {
+    public Iterator<Path> getFileIterator() {
         return iterator;
     }
 
-    public List<String> getFiles(String dirName) {
+    public List<String> getFileContent(Path dirName) {
         try {
-            return Files.walk(Paths.get(workSpace + dirName))
-                    .filter(f -> f.toString().endsWith(".java") || f.toString().endsWith(".xml"))
-                    .map(Path::toString)
-                    .collect(Collectors.toList());
+            return Files.lines(dirName).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
